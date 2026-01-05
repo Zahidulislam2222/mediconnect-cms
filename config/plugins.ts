@@ -1,4 +1,4 @@
-// 1. Keep the import
+// 1. Import the tool
 import { NodeHttpHandler } from '@aws-sdk/node-http-handler';
 
 export default ({ env }) => ({
@@ -8,7 +8,6 @@ export default ({ env }) => ({
             providerOptions: {
                 s3Options: {
                     credentials: {
-                        // 2. Use env() to read from the hidden file
                         accessKeyId: env('AWS_ACCESS_KEY_ID'),
                         secretAccessKey: env('AWS_ACCESS_SECRET'),
                     },
@@ -16,9 +15,9 @@ export default ({ env }) => ({
                     params: {
                         Bucket: env('AWS_BUCKET'),
                     },
-                    forcePathStyle: false, // You can keep this false if bucket name has no dots
+                    forcePathStyle: false,
 
-                    // 3. KEEP THIS TIMEOUT FIX (It saved you!)
+                    // 2. SET TIMEOUT TO 5 MINUTES
                     requestHandler: new NodeHttpHandler({
                         connectionTimeout: 300000,
                         socketTimeout: 300000,

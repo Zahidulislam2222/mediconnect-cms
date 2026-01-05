@@ -15,7 +15,6 @@
     "upgrade:dry": "npx @strapi/upgrade latest --dry"
   },
   "dependencies": {
-    "@aws-sdk/client-s3": "^3.962.0",
     "@aws-sdk/node-http-handler": "^3.370.0",
     "@strapi/plugin-cloud": "5.33.1",
     "@strapi/plugin-users-permissions": "5.33.1",
