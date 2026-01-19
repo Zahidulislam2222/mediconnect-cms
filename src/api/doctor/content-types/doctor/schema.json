@@ -1,0 +1,40 @@
+{
+  "kind": "collectionType",
+  "collectionName": "doctors",
+  "info": {
+    "singularName": "doctor",
+    "pluralName": "doctors",
+    "displayName": "Doctor"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "Name": {
+      "type": "string"
+    },
+    "Specialization": {
+      "type": "string"
+    },
+    "LicenseNumber": {
+      "type": "string"
+    },
+    "Bio": {
+      "type": "blocks"
+    },
+    "ProfilePicture": {
+      "type": "media",
+      "multiple": true,
+      "allowedTypes": [
+        "images",
+        "files",
+        "videos",
+        "audios"
+      ]
+    },
+    "YearsExperience": {
+      "type": "integer"
+    }
+  }
+}

@@ -1,0 +1,27 @@
+{
+  "kind": "collectionType",
+  "collectionName": "drugs",
+  "info": {
+    "singularName": "drug",
+    "pluralName": "drugs",
+    "displayName": "Drug"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "Name": {
+      "type": "string"
+    },
+    "Dosage": {
+      "type": "string"
+    },
+    "SideEffects": {
+      "type": "text"
+    },
+    "Price": {
+      "type": "decimal"
+    }
+  }
+}
