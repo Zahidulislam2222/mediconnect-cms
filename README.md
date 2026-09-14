@@ -1,5 +1,11 @@
 # 🚀 Getting started with Strapi
 
+> **MediConnect release review:** this repository is the retained CMS implementation.
+> Build success alone does not verify published articles, media access controls or live clinical
+> integration. Historical capabilities are preserved; current authenticated/public content flows
+> require fresh verification. Shared status definitions and scale targets are documented in the
+> sibling infrastructure repository's `REVIEWER-GUIDE.md`.
+
 Strapi comes with a full featured [Command Line Interface](https://docs.strapi.io/dev-docs/cli) (CLI) which lets you scaffold and manage your project in seconds.
 
 ### `develop`

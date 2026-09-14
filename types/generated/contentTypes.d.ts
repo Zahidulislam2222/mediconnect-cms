@@ -651,40 +651,6 @@ export interface ApiHealthTipHealthTip extends Struct.CollectionTypeSchema {
   };
 }
 
-export interface ApiMedicalReportMedicalReport
-  extends Struct.CollectionTypeSchema {
-  collectionName: 'medical_reports';
-  info: {
-    displayName: 'Medical Report';
-    pluralName: 'medical-reports';
-    singularName: 'medical-report';
-  };
-  options: {
-    draftAndPublish: true;
-  };
-  attributes: {
-    createdAt: Schema.Attribute.DateTime;
-    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
-      Schema.Attribute.Private;
-    File: Schema.Attribute.Media<
-      'images' | 'files' | 'videos' | 'audios',
-      true
-    >;
-    locale: Schema.Attribute.String & Schema.Attribute.Private;
-    localizations: Schema.Attribute.Relation<
-      'oneToMany',
-      'api::medical-report.medical-report'
-    > &
-      Schema.Attribute.Private;
-    publishedAt: Schema.Attribute.DateTime;
-    ReportDate: Schema.Attribute.Date;
-    Title: Schema.Attribute.String;
-    updatedAt: Schema.Attribute.DateTime;
-    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
-      Schema.Attribute.Private;
-  };
-}
-
 export interface ApiWellnessProgramWellnessProgram
   extends Struct.CollectionTypeSchema {
   collectionName: 'wellness_programs';
@@ -1233,7 +1199,6 @@ declare module '@strapi/strapi' {
       'api::drug.drug': ApiDrugDrug;
       'api::faq.faq': ApiFaqFaq;
       'api::health-tip.health-tip': ApiHealthTipHealthTip;
-      'api::medical-report.medical-report': ApiMedicalReportMedicalReport;
       'api::wellness-program.wellness-program': ApiWellnessProgramWellnessProgram;
       'plugin::content-releases.release': PluginContentReleasesRelease;
       'plugin::content-releases.release-action': PluginContentReleasesReleaseAction;
