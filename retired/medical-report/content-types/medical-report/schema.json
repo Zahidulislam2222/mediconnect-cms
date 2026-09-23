@@ -1,0 +1,31 @@
+{
+  "kind": "collectionType",
+  "collectionName": "medical_reports",
+  "info": {
+    "singularName": "medical-report",
+    "pluralName": "medical-reports",
+    "displayName": "Medical Report"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "Title": {
+      "type": "string"
+    },
+    "File": {
+      "type": "media",
+      "multiple": true,
+      "allowedTypes": [
+        "images",
+        "files",
+        "videos",
+        "audios"
+      ]
+    },
+    "ReportDate": {
+      "type": "date"
+    }
+  }
+}

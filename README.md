@@ -1,3 +1,52 @@
+# MediConnect CMS — Strapi 5 content management
+
+![Licence: MIT](https://img.shields.io/badge/licence-MIT-2563EB)
+![Strapi](https://img.shields.io/badge/Strapi-5.33.1-4945FF)
+![Status](https://img.shields.io/badge/status-local_build_verified%2C_not_deployed-64748B)
+
+**Live showcase:** <https://mediconnect.zahidul-islam.com> · **Platform docs:** [documentation index](https://github.com/Zahidulislam2222/mediconnect-infrastructure-production/blob/main/docs/README.md)
+
+The MediConnect CMS lets editors and clinicians publish patient-facing health content. Its content
+types are articles, diseases, doctors, drugs, FAQs, health tips and wellness programmes (`src/api/`).
+A migration tool copies published articles into the platform's regional content store
+([scripts/ARTICLE-MIGRATION.md](scripts/ARTICLE-MIGRATION.md)).
+
+## Status (2026-09-24)
+
+| Area | Status |
+|---|---|
+| Admin build and TypeScript check | Verified locally |
+| Article migration tool | Tests pass locally; `--execute` (which writes to the cloud) needs explicit owner approval |
+| Production deployment | **Not deployed.** Needs a persistent database, upload storage, backups with a restore test, and an admin security review. |
+
+## Quick start
+
+```bash
+npm ci
+cp .env.example .env     # fill in your own secrets; never commit .env
+npm run develop          # admin panel at http://localhost:1337/admin
+npm test                 # migration tool tests
+```
+
+## Content safety rules
+
+- A licensed clinician reviews health content before it is published, and the content shows its review date.
+- No patient data is ever stored in the CMS.
+- The admin panel must sit behind MFA and must not be exposed publicly without rate limiting.
+
+## Documentation, security and licence
+
+- Platform docs: [architecture](https://github.com/Zahidulislam2222/mediconnect-infrastructure-production/blob/main/docs/ARCHITECTURE.md), [security](https://github.com/Zahidulislam2222/mediconnect-infrastructure-production/blob/main/docs/SECURITY-ARCHITECTURE.md), [compliance](https://github.com/Zahidulislam2222/mediconnect-infrastructure-production/blob/main/docs/COMPLIANCE-AND-LAW.md), [roadmap](https://github.com/Zahidulislam2222/mediconnect-infrastructure-production/blob/main/docs/ROADMAP.md)
+- [CONTRIBUTING.md](CONTRIBUTING.md) · [Code of conduct](CODE_OF_CONDUCT.md) · [Security policy](SECURITY.md)
+- Code is released under the [MIT Licence](LICENSE). Strapi and dependencies keep their own licences: [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md).
+
+---
+
+## Original README (preserved)
+
+> Below is the original Strapi starter README, kept word for word.
+
+
 # 🚀 Getting started with Strapi
 
 > **MediConnect release review:** this repository is the retained CMS implementation.

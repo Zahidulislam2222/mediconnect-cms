@@ -38,6 +38,8 @@
     // Do not include test files
     "**/*.test.*",
     // Do not include plugins in the server compilation
-    "src/plugins/**"
+    "src/plugins/**",
+    // Retired content types kept for the record only; never compiled or loaded (2026-09-24)
+    "retired/"
   ]
 }
