@@ -1,0 +1,13 @@
+{
+  "NODE_ENV": "production",
+  "STRAPI_TELEMETRY_DISABLED": "true",
+  "APP_KEYS": "test-key-one,test-key-two",
+  "ADMIN_JWT_SECRET": "test-key",
+  "API_TOKEN_SALT": "test-key",
+  "TRANSFER_TOKEN_SALT": "test-key",
+  "ENCRYPTION_KEY": "test-key",
+  "JWT_SECRET": "test-key",
+  "AWS_REGION": "us-east-1",
+  "AWS_BUCKET": "test-build-bucket",
+  "AWS_EC2_METADATA_DISABLED": "true"
+}

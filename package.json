@@ -14,10 +14,11 @@
     "upgrade": "npx @strapi/upgrade latest",
     "upgrade:dry": "npx @strapi/upgrade latest --dry",
     "test:migration": "node --test scripts/__tests__/article-migration.test.cjs scripts/__tests__/asset-migration.test.cjs",
-    "test": "npm run test:migration && npm run test:runtime",
+    "test": "npm run test:migration && npm run test:runtime && npm run test:container",
     "typecheck:migration": "tsc --noEmit --allowJs --checkJs --strict --skipLibCheck --target ES2022 --module commonjs --types node scripts/migration-settings.cjs scripts/asset-settings.cjs migrate-assets.js",
     "test:runtime": "tsc -p tsconfig.runtime-tests.json && node --test scripts/__tests__/runtime-settings.test.cjs",
-    "typecheck:runtime": "tsc --noEmit -p tsconfig.runtime-tests.json"
+    "typecheck:runtime": "tsc --noEmit -p tsconfig.runtime-tests.json",
+    "test:container": "node --test scripts/__tests__/container-packaging.test.cjs"
   },
   "dependencies": {
     "@aws-sdk/client-dynamodb": "^3.986.0",

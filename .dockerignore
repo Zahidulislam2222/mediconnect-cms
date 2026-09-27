@@ -1,0 +1,33 @@
+# Source allowlist: local credentials, exports, databases, uploads and Git history
+# are never sent to the builder. Runtime values are supplied when starting it.
+**
+!package.json
+!package-lock.json
+!tsconfig.json
+!config/
+!config/**
+!src/
+!src/**
+!types/
+!types/**
+!database/
+!database/migrations/
+!database/migrations/**
+!scripts/
+!scripts/container-build.cjs
+!public/
+!public/robots.txt
+!favicon.png
+# Defense in depth for accidentally nested private material in source folders.
+**/.env*
+**/*.db*
+**/*.sqlite*
+**/*.key
+**/*.pem
+**/*.p12
+**/*.pfx
+**/CREDENTIALS.md
+**/PROJECT-DOSSIER.md
+**/memory/**
+**/node_modules/**
+**/__pycache__/**
