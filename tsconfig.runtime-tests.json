@@ -1,0 +1,6 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": { "outDir": "local-tests/runtime-build", "incremental": false, "strict": true },
+  "include": ["config/**/*.ts", "src/config/**/*.ts", "src/config/**/*.json"],
+  "exclude": ["node_modules", "dist", "local-tests", "scripts"]
+}

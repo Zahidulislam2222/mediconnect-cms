@@ -1,20 +1,10 @@
-export default ({ env }) => ({
-  auth: {
-    secret: env('ADMIN_JWT_SECRET'),
-  },
-  apiToken: {
-    salt: env('API_TOKEN_SALT'),
-  },
-  transfer: {
-    token: {
-      salt: env('TRANSFER_TOKEN_SALT'),
-    },
-  },
-  secrets: {
-    encryptionKey: env('ENCRYPTION_KEY'),
-  },
-  flags: {
-    nps: env.bool('FLAG_NPS', true),
-    promoteEE: env.bool('FLAG_PROMOTE_EE', true),
-  },
-});
+import { loadRuntimeSettings, type ConfigContext } from '../src/config/runtime-settings';
+export default ({ env }: ConfigContext) => {
+  const settings = loadRuntimeSettings(env);
+  return {
+    auth: { secret: settings.adminJwtSecret }, apiToken: { salt: settings.apiTokenSalt },
+    transfer: { token: { salt: settings.transferTokenSalt } },
+    secrets: { encryptionKey: settings.encryptionKey },
+    flags: { nps: settings.flagNps, promoteEE: settings.flagPromoteEe },
+  };
+};
