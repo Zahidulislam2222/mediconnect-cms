@@ -13,9 +13,9 @@
     "strapi": "strapi",
     "upgrade": "npx @strapi/upgrade latest",
     "upgrade:dry": "npx @strapi/upgrade latest --dry",
-    "test:migration": "node --test scripts/__tests__/article-migration.test.cjs",
+    "test:migration": "node --test scripts/__tests__/article-migration.test.cjs scripts/__tests__/asset-migration.test.cjs",
     "test": "npm run test:migration",
-    "typecheck:migration": "tsc --noEmit --allowJs --checkJs --strict --skipLibCheck --target ES2022 --module commonjs --types node scripts/migration-settings.cjs"
+    "typecheck:migration": "tsc --noEmit --allowJs --checkJs --strict --skipLibCheck --target ES2022 --module commonjs --types node scripts/migration-settings.cjs scripts/asset-settings.cjs migrate-assets.js"
   },
   "dependencies": {
     "@aws-sdk/client-dynamodb": "^3.986.0",
@@ -37,6 +37,7 @@
     "styled-components": "^6.0.0"
   },
   "devDependencies": {
+    "@types/mime-types": "3.0.1",
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
