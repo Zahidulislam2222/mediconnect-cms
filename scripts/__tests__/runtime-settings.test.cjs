@@ -57,6 +57,29 @@ test('all real config modules consume the typed settings', () => {
   assert.ok(middlewares.some(m => m.name === 'strapi::security'));
 });
 
+test('public CMS origin and proxy trust are explicit, validated and configured together', () => {
+  const plain = require(output + 'server.js').default({ env: k => fake[k] });
+  assert.equal(plain.url, undefined);
+  assert.equal(plain.proxy?.koa, false);
+  for (const origin of ['https://cms.example.test', 'http://127.0.0.1:4567']) {
+    const values = { ...fake, CMS_PUBLIC_URL: origin, CMS_TRUST_PROXY: 'true' };
+    const server = require(output + 'server.js').default({ env: k => values[k] });
+    assert.equal(server.url, origin);
+    assert.equal(server.proxy.koa, true);
+  }
+  for (const origin of ['http://cms.example.test', 'https://cms.example.test/admin',
+    'https://test-key:private@cms.example.test', 'https://cms.example.test?private',
+    'https://cms.example.test#private', 'https://cms.example.test\n', 'https://cms.example.test ',
+    'https://cms.exa\tmple.test', 'https://cms.example.test?', 'https://cms.example.test#',
+    'https://cms.example.test/hidden/..', 'https://cms.example.test/%2e',
+    'https://cms.example.test\\hidden\\..', 'https://cms.example.test\u007f']) {
+    assert.throws(() => settings({ ...fake, CMS_PUBLIC_URL: origin }),
+      error => !error.message.includes('private'));
+  }
+  assert.throws(() => settings({ ...fake, CMS_TRUST_PROXY: 'true' }));
+  assert.throws(() => settings({ ...fake, CMS_TRUST_PROXY: 'yes' }));
+});
+
 for (const region of ['us-east-1', 'eu-central-1']) for (const stream of [false, true]) test(`installed S3 provider sends synthetic ${stream ? 'stream' : 'buffer'} with no canned ACL (${region})`, async () => {
   const calls = [];
   const server = http.createServer((req, res) => {

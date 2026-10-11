@@ -12,6 +12,16 @@ Runtime requires the existing variables documented in `.env.example` and the
 runtime configuration guide. Inject them from a private environment file/secret
 store; do not add secret build arguments or copy `.env` into an image.
 
+For a separate HTTPS hostname, set `CMS_PUBLIC_URL` to its origin and set
+`CMS_TRUST_PROXY=true` at runtime. Build the admin using the same origin with
+`--build-arg CMS_PUBLIC_URL=...`; changing it requires a rebuild. Public origin
+metadata is the only added build argument; runtime secrets stay external.
+Direct local operation leaves the URL empty and proxy trust disabled.
+The installed Strapi 5.33.1 supports `server.proxy.koa` but does not read newer
+`proxy.ipHeader` or `proxy.maxIpsCount` settings. Keep the backend reachable only
+by the trusted proxy, and configure that proxy to replace forwarded client IP,
+scheme and host headers. Do not expose the trusting CMS port publicly.
+
 The runtime process is the unprivileged `node` user. Persist `/opt/app/.tmp` when
 using the default SQLite path, or set `DATABASE_FILENAME` to a writable persistent
 mount. If using local upload storage, persist `/opt/app/public/uploads`; the

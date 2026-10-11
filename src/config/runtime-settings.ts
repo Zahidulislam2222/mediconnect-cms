@@ -30,6 +30,10 @@ export function loadRuntimeSettings(read: Environment, root: string = process.cw
   const origin = (name: string, localAllowed: boolean): string | undefined => {
     const value = read(name);
     if (!value) return undefined;
+    // Reject non-origin syntax before URL parsing can normalize or discard it.
+    if (!/^https?:\/\/[^/\\?#\s]+\/?$/i.test(value) || /[\u0000-\u0020\u007f-\u009f]/.test(value)) {
+      throw new Error(`Invalid origin: ${name}`);
+    }
     let url: URL;
     try { url = new URL(value); } catch { throw new Error(`Invalid origin: ${name}`); }
     const loopback = url.hostname === 'localhost' || url.hostname === '[::1]' ||
@@ -41,6 +45,9 @@ export function loadRuntimeSettings(read: Environment, root: string = process.cw
     return url.origin;
   };
 
+  const publicUrl = origin('CMS_PUBLIC_URL', true);
+  const trustProxy = bool('CMS_TRUST_PROXY', defaults.trustProxy);
+  if (trustProxy && !publicUrl) throw new Error('CMS_PUBLIC_URL is required when trusting a proxy');
   const port = integer('PORT', defaults.port);
   if (port > 65535) throw new Error('Invalid port');
   const restDefaultLimit = integer('CMS_REST_DEFAULT_LIMIT', defaults.restDefaultLimit);
@@ -77,7 +84,7 @@ export function loadRuntimeSettings(read: Environment, root: string = process.cw
     }
   }
   return {
-    host: text('HOST', defaults.host), port, appKeys,
+    host: text('HOST', defaults.host), port, appKeys, publicUrl, trustProxy,
     databaseFilename: path.resolve(root, text('DATABASE_FILENAME', defaults.databaseFilename)),
     adminJwtSecret: secret('ADMIN_JWT_SECRET'), apiTokenSalt: secret('API_TOKEN_SALT'),
     transferTokenSalt: secret('TRANSFER_TOKEN_SALT'), encryptionKey: secret('ENCRYPTION_KEY'),

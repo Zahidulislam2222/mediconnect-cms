@@ -4,7 +4,9 @@ WORKDIR /opt/app
 COPY package.json package-lock.json ./
 RUN npm ci --no-audit --no-fund
 COPY . .
-RUN node scripts/container-build.cjs && npm prune --omit=dev --no-audit --no-fund
+# Public metadata only, never a secret. Match this to runtime CMS_PUBLIC_URL.
+ARG CMS_PUBLIC_URL
+RUN CMS_PUBLIC_URL=${CMS_PUBLIC_URL} node scripts/container-build.cjs && npm prune --omit=dev --no-audit --no-fund
 RUN mkdir -p .tmp public/uploads database/migrations
 
 FROM ${NODE_IMAGE} AS runtime

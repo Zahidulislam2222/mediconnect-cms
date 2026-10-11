@@ -1,6 +1,7 @@
 {
   "host": "0.0.0.0",
   "port": 1337,
+  "trustProxy": false,
   "databaseFilename": ".tmp/data.db",
   "restDefaultLimit": 25,
   "restMaxLimit": 100,
