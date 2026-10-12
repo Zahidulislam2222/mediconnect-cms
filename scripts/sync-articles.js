@@ -33,6 +33,31 @@ function validPublication(value) {
   return Number.isFinite(date.valueOf()) && date.toISOString() === expected;
 }
 
+/** Retain existing unsigned media at the configured destination; never fetch it.
+ * Check raw path segments before URL parsing can normalize traversal away.
+ * Object availability is verified separately by the operator before execution.
+ */
+function existingMediaUrl(settings, raw) {
+  if (typeof raw !== 'string' || !raw.startsWith(protocol.mediaProtocol + '//') || /[\\\x00-\x20\x7f?#]/.test(raw)) {
+    throw new Error('Invalid existing media reference');
+  }
+  const match = /^[^:]+:\/\/([^/]+)(\/.*)$/.exec(raw);
+  if (!match || match[1].includes('@')) throw new Error('Invalid existing media authority/path');
+  const segments = match[2].slice(1).split('/');
+  for (const segment of segments) {
+    const decoded = decodeURIComponent(segment);
+    if (!decoded || decoded === '.' || decoded === '..' || /[\\/\x00-\x20\x7f%?#]/.test(decoded)) {
+      throw new Error('Unsafe existing media path');
+    }
+  }
+  const url = new URL(raw), base = new URL(settings.mediaBaseUrl);
+  if (url.username || url.password || url.origin !== base.origin ||
+      !url.pathname.startsWith(base.pathname) || url.pathname.length <= base.pathname.length) {
+    throw new Error('Existing media outside configured destination');
+  }
+  return url.href;
+}
+
 /** Read only regular files beneath the configured, operator-owned uploads root.
  * Symlinks in requested components are rejected; this is not a filesystem sandbox
  * against an attacker concurrently renaming directories owned by the operator.
@@ -178,9 +203,14 @@ async function migrateArticles(settings, adapters, mode) {
           const image = Array.isArray(data) ? data[0] : data;
           if (image !== undefined && image !== null) {
             stage = 'MEDIA';
-            media = await adapters.readMedia(attributes(image).url);
-            item.coverImage = media.url;
-            planBytes += media.body.length;
+            const rawUrl = attributes(image).url;
+            if (typeof rawUrl === 'string' && rawUrl.startsWith(protocol.mediaProtocol + '//')) {
+              item.coverImage = existingMediaUrl(settings, rawUrl);
+            } else {
+              media = await adapters.readMedia(rawUrl);
+              item.coverImage = media.url;
+              planBytes += media.body.length;
+            }
           }
         }
         stage = 'ARTICLE';

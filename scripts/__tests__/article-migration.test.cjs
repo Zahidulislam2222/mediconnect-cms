@@ -106,6 +106,69 @@ test('empty source produces an explicit empty plan without writes', async t => {
   assert.equal(io.calls.writes.length, 0);
 });
 
+test('existing configured-origin covers are retained without reads or uploads', async t => {
+  const { settings } = fixture(t);
+  const cover = settings.mediaBaseUrl + 'existing/image.png';
+  for (const mode of ['--plan', '--execute']) {
+    const io = adapters(settings, [page([article(1, { coverImage: { url: cover } })])]);
+    io.readMedia = async () => { throw new Error('Existing remote media must not be read'); };
+    const result = await migrateArticles(settings, io, mode);
+    assert.equal(result.planned, 1);
+    assert.equal(io.calls.uploads.length, 0);
+    assert.equal(io.calls.writes.length, mode === '--execute' ? 1 : 0);
+    if (mode === '--execute') assert.equal(io.calls.writes[0].coverImage, cover);
+  }
+});
+
+test('mixed local and existing remote covers upload only local media', async t => {
+  const { settings } = fixture(t);
+  const io = adapters(settings, [page([
+    article(1, { coverImage: { url: '/uploads/test.jpg' } }),
+    article(2, { coverImage: { url: settings.mediaBaseUrl + 'existing.png' } }),
+  ])]);
+  await migrateArticles(settings, io, '--execute');
+  assert.equal(io.calls.uploads.length, 1);
+  assert.equal(io.calls.writes.length, 2);
+});
+
+for (const raw of [
+  'https://media.example.test/../outside.png',
+  'https://media.example.test/%2e%2e/outside.png',
+  'https://media.example.test/%252e%252e/outside.png',
+  'https://media.example.test/folder%2fimage.png',
+  'https://media.example.test/folder%5cimage.png',
+  'https://media.example.test/image.png?X-Amz-Signature=test-key',
+  'https://media.example.test/image.png#fragment',
+  'https://test-key@media.example.test/image.png',
+  'https://@media.example.test/image.png',
+  'https://:@media.example.test/image.png',
+  'https://media.example.test.evil.test/image.png',
+  'https://media.example.test/image%00.png',
+  'https://media.example.test/image\n.png',
+  'https://media.example.test/',
+]) {
+  test(`invalid existing-media reference blocks the entire mixed page: ${JSON.stringify(raw)}`, async t => {
+    const { settings } = fixture(t);
+    const io = adapters(settings, [page([
+      article(1, { coverImage: { url: '/uploads/test.jpg' } }),
+      article(2, { coverImage: { url: raw } }),
+    ])]);
+    await assert.rejects(migrateArticles(settings, io, '--execute'));
+    assert.equal(io.calls.uploads.length, 0);
+    assert.equal(io.calls.writes.length, 0);
+  });
+}
+
+test('configured media path prefix is enforced for existing remote covers', async t => {
+  const { settings: original } = fixture(t);
+  const settings = { ...original, mediaBaseUrl: original.mediaBaseUrl + 'editorial/' };
+  for (const suffix of ['editorial-other/image.png', 'elsewhere/image.png']) {
+    const io = adapters(settings, [page([article(1, { coverImage: { url: original.mediaBaseUrl + suffix } })])]);
+    await assert.rejects(migrateArticles(settings, io, '--execute'));
+    assert.equal(io.calls.writes.length, 0);
+  }
+});
+
 for (const name of ['wrong page', 'missing page', 'inconsistent total', 'duplicate id', 'truncated page', 'page limit']) {
   test(`pagination failure blocks every cloud write: ${name}`, async t => {
     const { settings } = fixture(t);
