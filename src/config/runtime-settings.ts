@@ -56,28 +56,49 @@ export function loadRuntimeSettings(read: Environment, root: string = process.cw
   const appKeys = secret('APP_KEYS').split(',').map(k => k.trim());
   if (appKeys.some(k => !k)) throw new Error('Invalid APP_KEYS');
 
-  const accessKeyId = read('AWS_ACCESS_KEY_ID') || undefined;
-  const standardSecret = read('AWS_SECRET_ACCESS_KEY') || undefined;
-  const legacySecret = read('AWS_ACCESS_SECRET') || undefined;
-  const secretAccessKey = standardSecret || legacySecret;
-  const sessionToken = read('AWS_SESSION_TOKEN') || undefined;
-  if ((standardSecret && legacySecret && standardSecret !== legacySecret) ||
-      Boolean(accessKeyId) !== Boolean(secretAccessKey) || (sessionToken && !accessKeyId)) {
-    throw new Error('Incomplete or conflicting AWS credential configuration');
-  }
-  for (const value of [accessKeyId, secretAccessKey, sessionToken]) {
-    if (value !== undefined && (!value.trim() || /[\r\n\0]/.test(value))) {
-      throw new Error('Invalid AWS credential configuration');
+  const uploadProvider = text('CMS_UPLOAD_PROVIDER', defaults.uploadProvider);
+  if (uploadProvider !== 'local' && uploadProvider !== 'aws-s3') throw new Error('Invalid upload provider');
+  const upload = (() => {
+    if (uploadProvider === 'local') {
+      if (text('CMS_UPLOAD_VISIBILITY', defaults.uploadVisibility) !== 'public') {
+        throw new Error('Local upload storage requires public editorial media');
+      }
+      return { provider: 'local' as const };
     }
-  }
-  const visibility = text('CMS_UPLOAD_VISIBILITY', defaults.uploadVisibility);
-  if (visibility !== 'public' && visibility !== 'private') throw new Error('Invalid upload visibility');
-  const baseUrl = origin('CMS_UPLOAD_PUBLIC_ORIGIN', false);
-  // Installed Strapi provider deliberately skips signing when a CDN base URL is set.
-  if (visibility === 'private' && baseUrl) throw new Error('Private uploads cannot use a public CDN origin');
-  const signedUrlSeconds = integer('CMS_UPLOAD_SIGNED_URL_SECONDS', defaults.uploadSignedUrlSeconds);
-  // AWS SigV4 presigned URL protocol maximum is seven days.
-  if (signedUrlSeconds > 604800) throw new Error('Signed URL duration exceeds protocol maximum');
+    const accessKeyId = read('AWS_ACCESS_KEY_ID') || undefined;
+    const standardSecret = read('AWS_SECRET_ACCESS_KEY') || undefined;
+    const legacySecret = read('AWS_ACCESS_SECRET') || undefined;
+    const secretAccessKey = standardSecret || legacySecret;
+    const sessionToken = read('AWS_SESSION_TOKEN') || undefined;
+    if ((standardSecret && legacySecret && standardSecret !== legacySecret) ||
+        Boolean(accessKeyId) !== Boolean(secretAccessKey) || (sessionToken && !accessKeyId)) {
+      throw new Error('Incomplete or conflicting AWS credential configuration');
+    }
+    for (const value of [accessKeyId, secretAccessKey, sessionToken]) {
+      if (value !== undefined && (!value.trim() || /[\r\n\0]/.test(value))) {
+        throw new Error('Invalid AWS credential configuration');
+      }
+    }
+    const visibility = text('CMS_UPLOAD_VISIBILITY', defaults.uploadVisibility);
+    if (visibility !== 'public' && visibility !== 'private') throw new Error('Invalid upload visibility');
+    const baseUrl = origin('CMS_UPLOAD_PUBLIC_ORIGIN', false);
+    // Installed Strapi provider deliberately skips signing when a CDN base URL is set.
+    if (visibility === 'private' && baseUrl) throw new Error('Private uploads cannot use a public CDN origin');
+    const signedUrlSeconds = integer('CMS_UPLOAD_SIGNED_URL_SECONDS', defaults.uploadSignedUrlSeconds);
+    // AWS SigV4 presigned URL protocol maximum is seven days.
+    if (signedUrlSeconds > 604800) throw new Error('Signed URL duration exceeds protocol maximum');
+    return {
+      provider: 'aws-s3' as const,
+      region: text('AWS_REGION'), bucket: text('AWS_BUCKET'),
+      credentials: accessKeyId && secretAccessKey ? { accessKeyId, secretAccessKey, ...(sessionToken ? { sessionToken } : {}) } : undefined,
+      endpoint: origin('CMS_UPLOAD_ENDPOINT', true), baseUrl,
+      connectionTimeoutMs: integer('CMS_UPLOAD_CONNECTION_TIMEOUT_MS', defaults.uploadConnectionTimeoutMs),
+      timeoutMs: integer('CMS_UPLOAD_TIMEOUT_MS', defaults.uploadTimeoutMs),
+      maxAttempts: integer('CMS_UPLOAD_MAX_ATTEMPTS', defaults.uploadMaxAttempts),
+      forcePathStyle: bool('CMS_UPLOAD_FORCE_PATH_STYLE', defaults.uploadForcePathStyle),
+      visibility, signedUrlSeconds,
+    };
+  })();
   for (const sources of [defaults.mediaSources, defaults.connectSources]) {
     if (!Array.isArray(sources) || !sources.length || sources.some(v => typeof v !== 'string' || !v || /[\r\n\0]/.test(v))) {
       throw new Error('Invalid maintained CSP sources');
@@ -92,15 +113,6 @@ export function loadRuntimeSettings(read: Environment, root: string = process.cw
     flagPromoteEe: bool('FLAG_PROMOTE_EE', defaults.flagPromoteEe),
     restDefaultLimit, restMaxLimit, restWithCount: bool('CMS_REST_WITH_COUNT', defaults.restWithCount),
     mediaSources: [...defaults.mediaSources], connectSources: [...defaults.connectSources],
-    upload: {
-      region: text('AWS_REGION'), bucket: text('AWS_BUCKET'),
-      credentials: accessKeyId && secretAccessKey ? { accessKeyId, secretAccessKey, ...(sessionToken ? { sessionToken } : {}) } : undefined,
-      endpoint: origin('CMS_UPLOAD_ENDPOINT', true), baseUrl,
-      connectionTimeoutMs: integer('CMS_UPLOAD_CONNECTION_TIMEOUT_MS', defaults.uploadConnectionTimeoutMs),
-      timeoutMs: integer('CMS_UPLOAD_TIMEOUT_MS', defaults.uploadTimeoutMs),
-      maxAttempts: integer('CMS_UPLOAD_MAX_ATTEMPTS', defaults.uploadMaxAttempts),
-      forcePathStyle: bool('CMS_UPLOAD_FORCE_PATH_STYLE', defaults.uploadForcePathStyle),
-      visibility, signedUrlSeconds,
-    },
+    upload,
   };
 }

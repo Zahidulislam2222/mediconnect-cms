@@ -3,6 +3,12 @@ import { NodeHttpHandler } from '@aws-sdk/node-http-handler';
 import type { RuntimeExtension } from '@aws-sdk/client-s3';
 export default ({ env }: ConfigContext) => {
   const { upload, jwtSecret } = loadRuntimeSettings(env);
+  if (upload.provider === 'local') {
+    return {
+      'users-permissions': { config: { jwtSecret } },
+      upload: { config: { provider: upload.provider } },
+    };
+  }
   const credentials = upload.credentials;
   // Strapi's installed extractCredentials drops sessionToken. The public SDK
   // extension API preserves the full identity without mutating process.env.
@@ -12,7 +18,7 @@ export default ({ env }: ConfigContext) => {
   return {
     'users-permissions': { config: { jwtSecret } },
     upload: { config: {
-      provider: '@strapi/provider-upload-aws-s3',
+      provider: upload.provider,
       providerOptions: {
         ...(upload.baseUrl ? { baseUrl: upload.baseUrl } : {}),
         s3Options: {

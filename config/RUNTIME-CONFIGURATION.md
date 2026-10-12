@@ -11,11 +11,19 @@ explicit absolute path is accepted for mounted persistent storage. This change
 does not migrate, copy, delete or validate the contents of any database. Back up
 the real database before changing its configured location.
 
-Runtime requires the existing app keys, token salts, JWT secrets, encryption
-key, upload region and bucket. Missing or malformed configuration fails before
-service use. Tests use fictional values and an isolated loopback server.
+Runtime requires the existing app keys, token salts, JWT secrets and encryption
+key. `CMS_UPLOAD_PROVIDER` defaults to `local`: public editorial media is stored
+in `public/uploads`, without reading AWS configuration or making S3 requests.
+Persist the database and upload directories independently. Local mode rejects
+private visibility; it must not hold private clinical documents. It does not
+copy remote objects or rewrite media URLs in existing database records.
 
-Prefer AWS workload roles or the standard SDK credential chain. Empty optional
+Select `CMS_UPLOAD_PROVIDER=aws-s3` explicitly for the legacy provider. This
+mode also requires upload region/bucket and can incur storage/request charges.
+Missing or malformed configuration fails before service use. Tests use
+fictional values, isolated filesystem fixtures and an isolated loopback server.
+
+For the S3 provider, prefer AWS workload roles or the standard SDK credential chain. Empty optional
 credential variables leave the chain active. Existing `AWS_ACCESS_SECRET`
 continues to work only as a compatibility alias inside the settings boundary.
 Do not configure conflicting standard and legacy secrets; partial credentials

@@ -12,8 +12,57 @@ const settings = (values = {}, root = process.cwd()) => loadRuntimeSettings(k =>
 const fake = {
   APP_KEYS: 'test-key-one,test-key-two', ADMIN_JWT_SECRET: 'test-key',
   API_TOKEN_SALT: 'test-key', TRANSFER_TOKEN_SALT: 'test-key', ENCRYPTION_KEY: 'test-key',
-  JWT_SECRET: 'test-key', AWS_REGION: 'us-east-1', AWS_BUCKET: 'synthetic-bucket',
+  JWT_SECRET: 'test-key', CMS_UPLOAD_PROVIDER: 'aws-s3', AWS_REGION: 'us-east-1', AWS_BUCKET: 'synthetic-bucket',
 };
+
+test('new local-media installs do not read or require AWS configuration', () => {
+  const values = { ...fake, CMS_UPLOAD_PROVIDER: undefined };
+  const env = name => {
+    assert.ok(!name.startsWith('AWS_'), `Local media unexpectedly reads ${name}`);
+    return values[name];
+  };
+  assert.equal(loadRuntimeSettings(env).upload.provider, 'local');
+  const config = require(output + 'plugins.js').default({ env }).upload.config;
+  assert.equal(config.provider, 'local');
+  assert.equal(config.providerOptions?.s3Options, undefined);
+});
+
+test('local media rejects private visibility and unknown providers', () => {
+  assert.throws(() => settings({ ...fake, CMS_UPLOAD_PROVIDER: 'local', CMS_UPLOAD_VISIBILITY: 'private' }));
+  assert.throws(() => settings({ ...fake, CMS_UPLOAD_PROVIDER: 'unknown-provider' }));
+});
+
+test('installed local provider persists buffer and streamed media across provider reloads', async () => {
+  const privateTests = path.join(__dirname, '../../local-tests');
+  fs.mkdirSync(privateTests, { recursive: true });
+  const root = fs.mkdtempSync(path.join(privateTests, 'local-media-'));
+  fs.mkdirSync(path.join(root, 'uploads'));
+  const previous = global.strapi;
+  global.strapi = { dirs: { static: { public: root } } };
+  try {
+    const values = { ...fake, CMS_UPLOAD_PROVIDER: 'local' };
+    const config = require(output + 'plugins.js').default({ env: name => values[name] }).upload.config;
+    const installed = require('@strapi/provider-upload-local');
+    assert.equal(config.provider, 'local');
+    const provider = installed.init(config.providerOptions);
+    const content = Buffer.from('synthetic public editorial media');
+    const buffered = { hash: 'synthetic-buffer', ext: '.txt', buffer: content };
+    const streamed = { hash: 'synthetic-stream', ext: '.txt', stream: Readable.from([content]) };
+    await provider.upload(buffered);
+    await provider.uploadStream(streamed);
+    for (const file of [buffered, streamed]) {
+      assert.equal(file.url, `/uploads/${file.hash}.txt`);
+      assert.deepEqual(fs.readFileSync(path.join(root, file.url)), content);
+    }
+    const restarted = installed.init(config.providerOptions);
+    assert.deepEqual(fs.readFileSync(path.join(root, streamed.url)), content);
+    await restarted.delete(buffered);
+    assert.equal(fs.existsSync(path.join(root, buffered.url)), false);
+    assert.deepEqual(fs.readFileSync(path.join(root, streamed.url)), content);
+  } finally {
+    global.strapi = previous;
+  }
+});
 
 test('default SQLite path is preserved; overrides have one settings owner', () => {
   const value = settings(fake);

@@ -24,8 +24,8 @@ scheme and host headers. Do not expose the trusting CMS port publicly.
 
 The runtime process is the unprivileged `node` user. Persist `/opt/app/.tmp` when
 using the default SQLite path, or set `DATABASE_FILENAME` to a writable persistent
-mount. If using local upload storage, persist `/opt/app/public/uploads`; the
-current configured S3 upload provider requires separately verified bucket access.
+mount. Persist `/opt/app/public/uploads` for the default local upload storage;
+explicitly selecting the S3 provider requires separately verified bucket access.
 Mount ownership must allow the container user to write. Do not replace an existing
 database with the image's empty directories.
 
@@ -41,3 +41,21 @@ schema migrations occurred; swapping an old image alone is not sufficient.
 No deployment, cloud resource creation, paid service, or RAG stack operation is
 performed by this packaging change. Local fixture evidence belongs in project
 memory. Independent review and operational deployment remain separate gates.
+# Local media on an existing host
+
+`CMS_UPLOAD_PROVIDER=local` is the default and uses Strapi's installed filesystem
+provider. It requires no AWS credentials or S3 requests. Keep both the SQLite
+database directory and `public/uploads` on their existing separate persistent
+mounts, writable by the container's `node` user. Preserve both in a consistent
+backup before replacing a container; do not mount over application source.
+
+Local uploads are public editorial assets. `CMS_UPLOAD_VISIBILITY=private` is
+rejected with the local provider. Keep private clinical documents in their
+separately authorized storage; never migrate them into the public media folder.
+
+The legacy S3 provider requires explicit `CMS_UPLOAD_PROVIDER=aws-s3` and its
+documented AWS settings. It can incur storage/request charges and must have
+separate approval. Selecting local storage does not copy or delete existing
+S3 objects or rewrite their stored URLs; migrate any remote article media with
+verified backups and URL parity before retiring its storage.
+

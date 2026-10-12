@@ -8,6 +8,7 @@
   "restWithCount": true,
   "flagNps": true,
   "flagPromoteEe": true,
+  "uploadProvider": "local",
   "uploadConnectionTimeoutMs": 300000,
   "uploadTimeoutMs": 300000,
   "uploadMaxAttempts": 3,
