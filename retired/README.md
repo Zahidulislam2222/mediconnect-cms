@@ -1,5 +1,7 @@
 # ⚠️ Retired — kept for the record, not active
 
+Reviewed 2026-10-13. Current platform acceptance is tracked in the [release ledger](https://github.com/Zahidulislam2222/mediconnect-infrastructure-production/blob/main/docs/RELEASE-STATUS.md); this guide retains its bounded component contract.
+
 This folder keeps code that is no longer part of the running CMS. The files are **inactive**:
 Strapi only loads content types from `src/api/`, and `tsconfig.json` excludes `retired/` from
 compilation.
